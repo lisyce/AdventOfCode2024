@@ -1,10 +1,15 @@
 import sys
 from collections import Counter
+from typing import Tuple, List
 
-def part_one(f) -> int:
+def parse_input(f) -> Tuple[List[int], List[int]]:
   lines = [l.strip() for l in f.readlines()]
   left = sorted([int(l.split()[0]) for l in lines])
   right = sorted([int(l.split()[1]) for l in lines])
+  return left, right
+
+def part_one(f) -> int:
+  left, right = parse_input(f)
   
   s = 0
   for l, r in zip(left, right):
@@ -13,9 +18,7 @@ def part_one(f) -> int:
   return s
 
 def part_two(f) -> int:
-  lines = [l.strip() for l in f.readlines()]
-  left = sorted([int(l.split()[0]) for l in lines])
-  right = sorted([int(l.split()[1]) for l in lines])
+  left, right = parse_input(f)
   
   right_counts = Counter(right)
   s = 0
@@ -30,6 +33,7 @@ if __name__ == "__main__":
   
   if "1" not in args and "2" not in args:
     print("Part One:", part_one(f))
+    f.seek(0)
     print("Part Two:", part_two(f))
   else:
     part = int(args[1])
