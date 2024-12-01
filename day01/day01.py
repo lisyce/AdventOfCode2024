@@ -1,10 +1,27 @@
 import sys
+from collections import Counter
 
 def part_one(f) -> int:
-  pass
+  lines = [l.strip() for l in f.readlines()]
+  left = sorted([int(l.split()[0]) for l in lines])
+  right = sorted([int(l.split()[1]) for l in lines])
+  
+  s = 0
+  for l, r in zip(left, right):
+    s += abs(l - r)
+
+  return s
 
 def part_two(f) -> int:
-  pass
+  lines = [l.strip() for l in f.readlines()]
+  left = sorted([int(l.split()[0]) for l in lines])
+  right = sorted([int(l.split()[1]) for l in lines])
+  
+  right_counts = Counter(right)
+  s = 0
+  for l in left:
+    s += right_counts[l] * l
+  return s
 
 if __name__ == "__main__":  
   args = sys.argv
