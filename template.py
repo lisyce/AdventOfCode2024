@@ -13,6 +13,7 @@ if __name__ == "__main__":
   
   if "1" not in args and "2" not in args:
     print("Part One:", part_one(f))
+    f.seek(0)
     print("Part Two:", part_two(f))
   else:
     part = int(args[1])
