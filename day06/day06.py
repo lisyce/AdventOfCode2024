@@ -1,4 +1,4 @@
-import sys
+import sys, argparse, time
 from collections import deque
 from tqdm import tqdm
 
@@ -117,19 +117,31 @@ def will_it_loop(board, obstacle_loc) -> bool:
 
 
 if __name__ == "__main__":  
-  args = sys.argv
-  file_name = "input_test.txt" if "--test" in args else "input.txt"
+  parser = argparse.ArgumentParser()
+  parser.add_argument("parts", nargs="*")
+  parser.add_argument("-t", "--test", action=argparse.BooleanOptionalAction)
+  args = parser.parse_args()
+  
+  file_name = "input_test.txt" if args.test else "input.txt"
   f = open(file_name)
   
-  if "1" not in args and "2" not in args:
-    print("Part One:", part_one(f))
-    f.seek(0)
-    print("Part Two:", part_two(f))
-  else:
-    part = int(args[1])
-    if part == 1:
-      print("Part One:", part_one(f))
-    else:
-      print("Part Two:", part_two(f))
+  run_pt_1 = not args.parts or "1" in args.parts
+  run_pt_2 = not args.parts or "2" in args.parts
+  
+  if run_pt_1:
+    start = time.perf_counter()
+    pt_1_result = part_one(f)
+    elapsed = (time.perf_counter() - start) * 1000 
+    
+    print("Part One:", pt_1_result, "(Ran in", round(elapsed, 8), "ms)")
+  
+  f.seek(0)
+  
+  if run_pt_2:
+    start = time.perf_counter()
+    pt_2_result = part_two(f)
+    stop = (time.perf_counter() - start) * 1000 
+    
+    print("Part Two:", pt_2_result, "(Ran in", round(elapsed, 8), "ms)")
     
   f.close()
