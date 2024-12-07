@@ -60,7 +60,7 @@ if __name__ == "__main__":
   if run_pt_2:
     start = time.perf_counter()
     pt_2_result = part_two(f)
-    stop = (time.perf_counter() - start) * 1000 
+    elapsed = (time.perf_counter() - start) * 1000 
     
     print("Part Two:", pt_2_result, "(Ran in", round(elapsed, 8), "ms)")
     
