@@ -1,6 +1,5 @@
-import sys, argparse, time, math, re
+import  argparse, time, math, re
 import numpy as np
-from tqdm import tqdm
 
 def parse_input(f):
   lines = f.readlines()
@@ -13,16 +12,17 @@ def parse_input(f):
     result.append(([int(a) for a in A], [int(b) for b in B], [int(p) for p in P]))
   return result
 
-def solve_machine(machine):
-  A, B, prize = machine
-  memo = np.full(prize, -1.0)
+# SLOW DP
+# def solve_machine(machine):
+#   A, B, prize = machine
+#   memo = np.full(prize, -1.0)
 
-  res = OPT(prize[0], prize[1], A, B, memo)
-  if res == math.inf:
-    return 0
-  return res
+#   res = OPT(prize[0], prize[1], A, B, memo)
+#   if res == math.inf:
+#     return 0
+#   return res
 
-def OPT(X, Y, A, B, memo):
+# def OPT(X, Y, A, B, memo):
   if memo[X-1][Y-1] != -1:
     return memo[X-1][Y-1]
 
@@ -45,12 +45,27 @@ def OPT(X, Y, A, B, memo):
 def part_one(f) -> int:
   machines = parse_input(f)
   total = 0
-  for m in tqdm(machines):
-    total += solve_machine(m)
+  for m in machines:
+    total += sys_eqns(m)
   return total
 
+def sys_eqns(machine):
+  (x_A, y_A), (x_B, y_B), (x_P, y_P) = machine
+  a2 = (y_A * x_P - x_A * y_P) / (y_A * x_B - y_B * x_A)
+  a1 = (y_P - y_B * a2) / y_A
+  if int(a1) != a1 or int(a2) != a2:
+    return 0
+  return int(3 * a1 + a2)
+
 def part_two(f) -> int:
-  pass
+  machines = parse_input(f)
+  total = 0
+  for m in machines:
+    m[2][0] += 10000000000000
+    m[2][1] += 10000000000000
+    total += sys_eqns(m)
+    
+  return total
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()

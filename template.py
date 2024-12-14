@@ -1,4 +1,4 @@
-import sys, argparse, time
+import argparse, time
 
 def part_one(f) -> int:
   pass
