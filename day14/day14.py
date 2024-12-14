@@ -1,5 +1,6 @@
 import argparse, time, re, time
 import numpy as np
+import matplotlib.pyplot as plt
 
 def parse_input(f):
   result = []
@@ -36,7 +37,7 @@ def part_one(f, width, height) -> int:
 
 def error(positions):
   avg = np.mean(positions, axis=0)
-  err = np.sum(np.square(positions - avg))
+  err = np.mean(np.square(positions - avg))
   return err
 
 def part_two(f, width, height) -> int:
@@ -47,15 +48,24 @@ def part_two(f, width, height) -> int:
   
   min_err = np.inf
   min_iter = -1
+  errs = []
   for iteration in range(10000):
     positions += velocities   
     positions[:, 0] %= width
     positions[:, 1] %= height
     
     err = error(positions)
+    errs.append(err)
     if err < min_err:
       min_err = err
       min_iter = iteration + 1
+  plt.title("MSE per iteration")
+  plt.xlabel("Iteration")
+  plt.ylabel("Error")
+  plt.plot(np.arange(len(errs)) + 1, errs)
+  plt.plot(min_iter, errs[min_iter-1], 'ro')
+  plt.text(min_iter + len(errs) / 100, errs[min_iter-1], f"({min_iter}, {errs[min_iter-1]})")
+  plt.show()
   return min_iter
     
 
