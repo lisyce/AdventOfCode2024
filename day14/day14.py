@@ -1,10 +1,12 @@
 import argparse, time, re, time
+import numpy as np
+from tqdm import tqdm
 
 def parse_input(f):
   result = []
   for line in f:
     nums = [int(n) for n in re.findall(r"-?\d+", line)]
-    result.append([(nums[0], nums[1]), (nums[2], nums[3])])
+    result.append([[nums[0], nums[1]], [nums[2], nums[3]]])
   return result
 
 def part_one(f) -> int:
@@ -37,37 +39,31 @@ def part_one(f) -> int:
   return final_pos[0] * final_pos[1] * final_pos[2] * final_pos[3]
 
 
-def check_end(board, bots):
-  total = 0
-  for row in board:
-    for col in row:
-      if col == "#":
-        total += 1
-  return total == len(bots)
-
+def error(bots):
+  positions = [b[0] for b in bots]
+  avg = np.mean(positions, axis=0)
+  err = np.sum(np.square(positions - avg))
+  return err
 
 def part_two(f) -> int:
   robots = parse_input(f)
   width = 101  # todo change based on test or not
   height = 103
   
-  c = 1
-  while True:
-    #print(c)
-    # move all the guys
-    board = [["." for _ in range(width)] for _ in range(height)]
-    for i, (pos, vel) in enumerate(robots):
+  min_err = np.inf
+  min_iter = -1
+  for iteration in tqdm(range(10000)):
+    for r, (pos, vel) in enumerate(robots):
       x = (pos[0] + vel[0]) % width
       y = (pos[1] + vel[1]) % height
-      board[y][x] = "#"
-      robots[i][0] = (x, y)
-    if check_end(board, robots):
-      for row in board:
-        print("".join(row))
-      return c
-    c += 1
+      robots[r][0] = [x, y]
+      err = error(robots)
+      if err < min_err:
+        min_err = err
+        min_iter = iteration
+  return min_iter
     
-    
+
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
   parser.add_argument("parts", nargs="*")
