@@ -55,8 +55,116 @@ def part_one(f) -> int:
       fish = move_item(board, fish[0], fish[1], dx, dy)
   return score(board)
 
+def double_board(board):
+  result = []
+  for row in board:
+    new_row = []
+    for char in row:
+      if char in ".#":
+        new_row.append(char)
+        new_row.append(char)
+      elif char == "O":
+        new_row.append("[")
+        new_row.append("]")
+      elif char == "@":
+        new_row.append("@")
+        new_row.append(".")
+    result.append(new_row)
+  return result
+
+def move_item_pt2(board, ix, iy, dx, dy):
+  this_tile = board[iy][ix]
+  if this_tile == "#":
+    return ix, iy
+
+  # move stuff in the way if we can
+  if this_tile == "@":
+    this_left_x = this_right_x = ix
+  else:
+    # it's a box!
+    if this_tile == "]":
+      this_left_x, this_right_x = ix-1, ix
+    else:
+      this_left_x, this_right_x = ix, ix+1
+
+  next_tiles = [(this_left_x + dx, iy + dy), (this_right_x + dx, iy + dy)]
+  for next_tile in next_tiles:
+    move_item_pt2(board, next_tile[0], next_tile[1], dx, dy)  # this has issues with lateral moves
+
+  # move this item if we can
+  # if this is a fish, it's easy
+  if this_tile == "@":
+    if board[iy + dy][ix + dx] in "[]#":
+      return ix, iy
+    elif board[iy + dy][ix + dx] == ".":
+      board[iy + dy][ix + dx] = board[iy][ix]
+      board[iy][ix] = "."
+      return ix + dx, iy + dy
+  else:  # we are moving a box
+    if dx == 0:  # vertical move
+      pass
+
+def item_bounds(board, ix, iy):
+  this_tile = board[iy][ix]
+  if this_tile in "#.@":
+    return [(ix, iy)]
+
+  if this_tile == "]":
+    return [(ix, iy), (ix-1, iy)]
+  else:
+    return [(ix, iy), (ix+1, iy)]
+
+def move_vertical_pt2(board, ix, iy, dy):
+  #print(ix, iy, dy, board[iy][ix])
+  if board[iy][ix] in "#.":
+    return ix, iy
+  
+  this_bounds = item_bounds(board, ix, iy)
+  next_tiles = [(x, y + dy) for x, y in this_bounds]
+  #print(this_bounds, next_tiles)
+  # move items in the way if possible
+  for nt in next_tiles:
+    ntnewx, ntnewy = move_vertical_pt2(board, nt[0], nt[1], dy)
+    if ntnewx == nt[0] and ntnewy == nt[1]:
+      # we couldn't move this item in the way
+      
+
+  # move ourself if possible
+  if board[iy][ix] == "@":
+    # we are the fish
+    if board[iy + dy][ix] in "[]#":
+      return ix, iy
+    elif board[iy + dy][ix] == ".":
+      board[iy + dy][ix] = board[iy][ix]
+      board[iy][ix] = "."
+      return ix, iy + dy
+  else:
+    # we are a box
+    for nt in next_tiles:
+      if board[nt[1]][nt[0]] != ".":
+        return ix, iy
+    # we can move up/down
+    for tb in this_bounds:
+      board[tb[1] + dy][tb[0]] = board[tb[1]][tb[0]]
+      board[tb[1]][tb[0]] = "."
+    return ix, iy + dy
+
+
 def part_two(f) -> int:
-  pass
+  board, moves = parse_input(f)
+  #board = double_board(board)
+
+  fish = where_fish(board)
+  for row in board:
+    print("".join(row))
+  for move_line in moves:
+    for move in move_line:
+      print(move)
+      dx, dy = direction(move)
+      fish = move_vertical_pt2(board, fish[1], fish[0], dy)
+      for row in board:
+        print("".join(row))
+  return score(board)
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
