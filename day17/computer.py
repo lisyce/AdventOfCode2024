@@ -52,7 +52,6 @@ class Computer:
       A_prev = As[-1]
       A_i = BitVec(f'A_{i}', 64)
       s.add(A_i == A_prev >> 3)
-      s.add(A_i % 8 == self.expanded_program[i-1])
       if i <= 15:
         s.add(A_i != 0)
       else:
