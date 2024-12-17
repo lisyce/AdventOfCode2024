@@ -1,4 +1,4 @@
-import argparse, time, math, sys, heapq
+import argparse, time, math, heapq
 from collections import defaultdict
 
 def parse_board(f):
@@ -52,7 +52,7 @@ def dijkstras(board, start):
         heapq.heappush(queue, (alt, (n_loc, n_dir)))
   return dist, prev
 
-def pathfind(board, curr, d, target, visited, curr_score, best_score, nodes_on_best_paths, dist):
+def all_nodes_on_best_paths(board, curr, d, target, visited, curr_score, best_score, nodes_on_best_paths, dist):
   if curr == target:
     if curr_score == best_score:
       nodes_on_best_paths.update([x for x, y in visited])
@@ -67,7 +67,7 @@ def pathfind(board, curr, d, target, visited, curr_score, best_score, nodes_on_b
   for (n_loc, n_dir), cost in neighbors:
     if (n_loc, n_dir) not in visited and in_bounds(n_loc, board) and board[n_loc[0]][n_loc[1]] != "#":
       visited.add((n_loc, n_dir))
-      potential_paths.append(pathfind(board, n_loc, n_dir, target, visited, curr_score + cost, best_score, nodes_on_best_paths, dist))
+      potential_paths.append(all_nodes_on_best_paths(board, n_loc, n_dir, target, visited, curr_score + cost, best_score, nodes_on_best_paths, dist))
       visited.remove((n_loc, n_dir))
   result = min(potential_paths) if potential_paths else math.inf
   return result
@@ -83,25 +83,17 @@ def part_one(f) -> int:
 
 def part_two(f) -> int:
   board, s, e = parse_board(f)
-  dist, prev = dijkstras(board, s)
+  dist, _ = dijkstras(board, s)
 
   best_path_cost = math.inf
   for (loc, _), v in dist.items():
     if loc == e:
       best_path_cost = min(best_path_cost, v)
-  # print(dist)
-  # print()
-  # print(prev)
 
   all_nodes = set()
   visited = set()
   visited.add((s, (0, 1)))
-  pathfind(board, s, (0, 1), e, visited, 0, best_path_cost, all_nodes, dist)
-
-  # for y, x in all_nodes:
-  #   board[y][x] = "O"
-  # for row in board:
-  #   print("".join(row[:-1]))
+  all_nodes_on_best_paths(board, s, (0, 1), e, visited, 0, best_path_cost, all_nodes, dist)
     
   return len(all_nodes)
 
