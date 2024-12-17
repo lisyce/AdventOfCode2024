@@ -32,6 +32,54 @@ class Computer:
       self.ip += 1
     print()
 
+  # ONLY WORKS ON MY PERSONAL INPUT
+  def solve(self):
+    s = Solver()
+
+    A_0 = BitVec('A_0', 64)
+    B_0 = BitVec('B_0', 64)
+    C_0 = BitVec("C_0", 64)
+    As = [A_0]
+    Bs = [B_0]
+    Cs = [C_0]
+
+    s.add(B_0 == 0)
+    s.add(C_0 == 0)
+    s.add(A_0 > 0)
+
+    for i in range(1, 17):
+      # A
+      A_prev = As[-1]
+      A_i = BitVec(f'A_{i}', 64)
+      s.add(A_i == A_prev >> 3)
+      s.add(A_i % 8 == self.expanded_program[i-1])
+      if i <= 15:
+        s.add(A_i != 0)
+      else:
+        s.add(A_i == 0)
+
+      As.append(A_i)
+
+      # C
+      C_i = BitVec(f"C_{i}", 64)
+      s.add(C_i == A_prev >> (1 << ((A_prev % 8) ^ 7)))
+      Cs.append(C_i)
+
+      # B
+      B_i = BitVec(f"B_{i}", 64)
+      s.add(B_i == (((A_prev % 8) ^ 7) ^ C_i) ^ 7)
+      s.add(B_i % 8 == self.expanded_program[i-1])
+      Bs.append(B_i)
+
+    for c in s.assertions():
+      print(c)
+    
+    if s.check() == sat:
+      m = s.model()
+      return m[A_0]
+    else:
+      raise Exception("Unsatisfiable")
+
   def solve_test(self):
     s = Solver()
 

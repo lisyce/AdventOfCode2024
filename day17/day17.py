@@ -10,7 +10,7 @@ def part_two(f, is_test) -> int:
   computer = Computer(f)
   if is_test:
     return computer.solve_test()
-  #return computer.solve()
+  return computer.solve()
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
