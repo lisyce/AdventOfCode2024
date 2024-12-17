@@ -1,4 +1,4 @@
-import argparse, time, math, sys
+import argparse, time, math, sys, heapq
 from collections import defaultdict
 
 def parse_board(f):
@@ -18,73 +18,83 @@ def parse_board(f):
 def in_bounds(pair, board) -> bool:
   return pair[0] >= 0 and pair[0] < len(board) and pair[1] >= 0 and pair[1] < len(board[0])
 
-def get_neighbors_and_turns(curr, d):
+# old, slow
+# def get_neighbors_and_turns(curr, d):
+#   cy, cx = curr
+#   dy, dx = d
+
+#   neighbors = []
+#   turns = [0, 1, 2, 1]
+#   for i in range(4):
+#     if i != 2:
+#       neighbors.append([(cy + dy, cx + dx), turns[i]])
+#     temp = dy
+#     dy = dx
+#     dx = -temp
+#   return neighbors
+
+# def pathfind(board, curr, target, d, visited, memo, curr_score): 
+#   if (curr, d) in memo:
+#     if curr_score >= memo[(curr, d)]:
+#       return math.inf
+#   memo[(curr, d)] = curr_score
+  
+#   if curr == target:
+#     return curr_score
+
+#   neighbors = get_neighbors_and_turns(curr, d)
+#   potential_paths = []
+#   #print(curr, d, neighbors)
+#   for n, turns in neighbors:
+#     if n not in visited and in_bounds(n, board) and board[n[0]][n[1]] != "#":
+#       visited.add(n)
+#       dy = n[0] - curr[0]
+#       dx = n[1] - curr[1]
+#       potential_paths.append(pathfind(board, n, target, (dy, dx), visited.copy(), memo, curr_score + 1 + 1000 * turns))
+#   result = min(potential_paths) if potential_paths else math.inf
+#   return result
+
+def dijkstras_neighbors(curr, d):
   cy, cx = curr
   dy, dx = d
 
-  neighbors = []
-  turns = [0, 1, 2, 1]
-  for i in range(4):
-    if i != 2:
-      neighbors.append([(cy + dy, cx + dx), turns[i]])
+  neighbors = [(((cy + dy, cx + dx), d), 1)]
+  for i in range(1, 4):
     temp = dy
     dy = dx
     dx = -temp
+    if i != 2:
+      neighbors.append(((curr, (dy, dx)), 1000))
   return neighbors
 
-def pathfind(board, curr, target, d, visited, memo, curr_score): 
-  if (curr, d) in memo:
-    if curr_score >= memo[(curr, d)]:
-      return math.inf
-  memo[(curr, d)] = curr_score
-  
-  if curr == target:
-    return curr_score
+def dijkstras(board, start, target):
+  queue = []
+  dist = defaultdict(lambda: math.inf)
+  prev = defaultdict(lambda: None)
+  dist[(start, (0, 1))] = 0
 
-  print(len(visited))
-  neighbors = get_neighbors_and_turns(curr, d)
-  potential_paths = []
-  #print(curr, d, neighbors)
-  for n, turns in neighbors:
-    if n not in visited and in_bounds(n, board) and board[n[0]][n[1]] != "#":
-      visited.add(n)
-      dy = n[0] - curr[0]
-      dx = n[1] - curr[1]
-      potential_paths.append(pathfind(board, n, target, (dy, dx), visited.copy(), memo, curr_score + 1 + 1000 * turns))
-  result = min(potential_paths) if potential_paths else math.inf
-  return result
+  heapq.heappush(queue, (0, (start, (0, 1))))
+  while queue:
+    _, (location, direction) = heapq.heappop(queue)
 
-# def expand_graph(board, s, e):
-#   result = defaultdict(dict)
-  
-#   # do rotations
-#   for i in range(len(board) * len(board[0])):
-#     for j in range(4):
-#       ccw = i * 4 + ((j + 1) % 4)
-#       result[i * 4 + j][ccw] = 1000
+    for (n_loc, n_dir), cost in dijkstras_neighbors(location, direction):
+      if not in_bounds(n_loc, board) or board[n_loc[0]][n_loc[1]] == "#":
+        continue
 
-#       cw = i * 4 + ((4 + j - 1) % 4)
-#       result[i * 4 + j][cw] = 1000
+      alt = dist[(location, direction)] + cost
+      if alt < dist[(n_loc, n_dir)]:
+        prev[(n_loc, n_dir)] = (location, direction)
+        dist[(n_loc, n_dir)] = alt
+        heapq.heappush(queue, (alt, (n_loc, n_dir)))
+  return dist, prev
 
-#   for i in range(len(board)):
-#     for j in range(len(board[0])):
-#       # rotations
-        
-
-#   return result
-
-def part_one(f) -> int:  # 115488 too high
-  sys.setrecursionlimit(5000)
+def part_one(f) -> int:
   board, s, e = parse_board(f)
-
-  d = (0, 1)  # row, col
-  #print(s, e)
-  visited = set()
-  visited.add(s)
-  memo = {}
-  result = pathfind(board, s, e, d, visited, memo, 0)
-  # for k, v in memo.items():
-  #   print(k, v)
+  dist, _ = dijkstras(board, s, e)
+  result = math.inf
+  for (loc, _), v in dist.items():
+    if loc == e:
+      result = min(result, v)
   return result
 
 def part_two(f) -> int:
