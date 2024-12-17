@@ -83,15 +83,15 @@ class Computer:
   def solve_test(self):
     s = Solver()
 
-    A_0 = Int('A_0')
-    B_0 = Int('B_0')
-    C_0 = Int("C_0")
+    A_0 = BitVec('A_0', 64)
+    B_0 = BitVec('B_0', 64)
+    C_0 = BitVec("C_0", 64)
     As = [A_0]
     s.add(B_0 == 0)
     s.add(C_0 == 0)
     for i in range(1, 7):
-      A_i = Int(f'A_{i}')
-      s.add(A_i == As[-1] / 8)
+      A_i = BitVec(f'A_{i}', 64)
+      s.add(A_i == As[-1] >> 3)
       s.add(A_i % 8 == self.expanded_program[i-1])
       As.append(A_i)
       if i <= 5:
