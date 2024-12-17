@@ -2,7 +2,7 @@ import argparse, time
 
 from computer import Computer
 
-def part_one(f) -> int:
+def part_one(f) -> str:
   computer = Computer(f)
   return computer.run()
 
