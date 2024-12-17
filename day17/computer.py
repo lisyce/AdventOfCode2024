@@ -23,14 +23,14 @@ class Computer:
       self.program.append((program[i * 2], program[i * 2 + 1]))
 
     self.opcode_map = [self._adv, self._bxl, self._bst, self._jnz, self._bxc, self._out, self._bdv, self._cdv]
-    self.has_outputted = False
+    self.output = []
 
   def run(self):
     while self.ip < len(self.program):
       opcode, operand = self.program[self.ip]
       self.opcode_map[opcode](operand)
       self.ip += 1
-    print()
+    return ",".join(self.output)
 
   # ONLY WORKS ON MY PERSONAL INPUT
   def solve(self):
@@ -40,8 +40,6 @@ class Computer:
     B_0 = BitVec('B_0', 64)
     C_0 = BitVec("C_0", 64)
     As = [A_0]
-    Bs = [B_0]
-    Cs = [C_0]
 
     s.add(B_0 == 0)
     s.add(C_0 == 0)
@@ -61,17 +59,15 @@ class Computer:
 
       # C
       C_i = BitVec(f"C_{i}", 64)
-      s.add(C_i == A_prev >> (1 << ((A_prev % 8) ^ 7)))
-      Cs.append(C_i)
+      s.add(C_i == A_prev >> ((A_prev % 8) ^ 7))
 
       # B
       B_i = BitVec(f"B_{i}", 64)
       s.add(B_i == (((A_prev % 8) ^ 7) ^ C_i) ^ 7)
       s.add(B_i % 8 == self.expanded_program[i-1])
-      Bs.append(B_i)
 
-    for c in s.assertions():
-      print(c)
+    # for c in s.assertions():
+    #   print(c)
     
     if s.check() == sat:
       m = s.model()
@@ -142,11 +138,8 @@ class Computer:
     self.B = self.B ^ self.C
 
   def _out(self, operand):
-    if self.has_outputted:
-      print(",", end="")
     operand = self._combo_operand(operand)
-    print(operand % 8, end="")
-    self.has_outputted = True
+    self.output.append(str(operand % 8))
 
   def _bdv(self, operand):
     combo_operand = self._combo_operand(operand)

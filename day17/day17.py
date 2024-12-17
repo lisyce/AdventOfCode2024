@@ -4,7 +4,7 @@ from computer import Computer
 
 def part_one(f) -> int:
   computer = Computer(f)
-  computer.run()
+  return computer.run()
 
 def part_two(f, is_test) -> int:
   computer = Computer(f)
