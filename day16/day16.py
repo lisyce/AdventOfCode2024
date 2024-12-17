@@ -67,7 +67,7 @@ def dijkstras_neighbors(curr, d):
       neighbors.append(((curr, (dy, dx)), 1000))
   return neighbors
 
-def dijkstras(board, start, target):
+def dijkstras(board, start):
   queue = []
   dist = defaultdict(lambda: math.inf)
   prev = defaultdict(lambda: None)
@@ -88,9 +88,29 @@ def dijkstras(board, start, target):
         heapq.heappush(queue, (alt, (n_loc, n_dir)))
   return dist, prev
 
+def pathfind(board, curr, d, target, visited, curr_score, best_score, nodes_on_best_paths, dist):
+  if curr == target:
+    if curr_score == best_score:
+      nodes_on_best_paths.update([x for x, y in visited])
+    return curr_score
+  
+  if curr_score > dist[(curr, d)]:
+    # stop trying
+    return math.inf
+
+  neighbors = dijkstras_neighbors(curr, d)
+  potential_paths = []
+  for (n_loc, n_dir), cost in neighbors:
+    if (n_loc, n_dir) not in visited and in_bounds(n_loc, board) and board[n_loc[0]][n_loc[1]] != "#":
+      visited.add((n_loc, n_dir))
+      potential_paths.append(pathfind(board, n_loc, n_dir, target, visited, curr_score + cost, best_score, nodes_on_best_paths, dist))
+      visited.remove((n_loc, n_dir))
+  result = min(potential_paths) if potential_paths else math.inf
+  return result
+
 def part_one(f) -> int:
   board, s, e = parse_board(f)
-  dist, _ = dijkstras(board, s, e)
+  dist, _ = dijkstras(board, s)
   result = math.inf
   for (loc, _), v in dist.items():
     if loc == e:
@@ -98,7 +118,29 @@ def part_one(f) -> int:
   return result
 
 def part_two(f) -> int:
-  pass
+  board, s, e = parse_board(f)
+  dist, prev = dijkstras(board, s)
+
+  best_path_cost = math.inf
+  for (loc, _), v in dist.items():
+    if loc == e:
+      best_path_cost = min(best_path_cost, v)
+  # print(dist)
+  # print()
+  # print(prev)
+
+  all_nodes = set()
+  visited = set()
+  visited.add((s, (0, 1)))
+  pathfind(board, s, (0, 1), e, visited, 0, best_path_cost, all_nodes, dist)
+
+  # for y, x in all_nodes:
+  #   board[y][x] = "O"
+  # for row in board:
+  #   print("".join(row[:-1]))
+    
+  return len(all_nodes)
+
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
