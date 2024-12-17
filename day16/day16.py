@@ -18,42 +18,6 @@ def parse_board(f):
 def in_bounds(pair, board) -> bool:
   return pair[0] >= 0 and pair[0] < len(board) and pair[1] >= 0 and pair[1] < len(board[0])
 
-# old, slow
-# def get_neighbors_and_turns(curr, d):
-#   cy, cx = curr
-#   dy, dx = d
-
-#   neighbors = []
-#   turns = [0, 1, 2, 1]
-#   for i in range(4):
-#     if i != 2:
-#       neighbors.append([(cy + dy, cx + dx), turns[i]])
-#     temp = dy
-#     dy = dx
-#     dx = -temp
-#   return neighbors
-
-# def pathfind(board, curr, target, d, visited, memo, curr_score): 
-#   if (curr, d) in memo:
-#     if curr_score >= memo[(curr, d)]:
-#       return math.inf
-#   memo[(curr, d)] = curr_score
-  
-#   if curr == target:
-#     return curr_score
-
-#   neighbors = get_neighbors_and_turns(curr, d)
-#   potential_paths = []
-#   #print(curr, d, neighbors)
-#   for n, turns in neighbors:
-#     if n not in visited and in_bounds(n, board) and board[n[0]][n[1]] != "#":
-#       visited.add(n)
-#       dy = n[0] - curr[0]
-#       dx = n[1] - curr[1]
-#       potential_paths.append(pathfind(board, n, target, (dy, dx), visited.copy(), memo, curr_score + 1 + 1000 * turns))
-#   result = min(potential_paths) if potential_paths else math.inf
-#   return result
-
 def dijkstras_neighbors(curr, d):
   cy, cx = curr
   dy, dx = d
