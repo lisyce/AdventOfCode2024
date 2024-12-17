@@ -37,6 +37,7 @@ def pathfind(board, curr, target, d, visited, memo):
   
   # if (curr, d) in memo:
   #   return memo[(curr, d)]
+  
   if curr == target:
     # best_path_pt1 = min(best_path_pt1, curr_score)
     memo[(curr, d)] = 0
@@ -56,28 +57,6 @@ def pathfind(board, curr, target, d, visited, memo):
   memo[(curr, d)] = result
   return result
 
-
-def OPT(board, curr, target, d, memo, visited): 
-  #print(curr, d)
-  if curr == target:
-    memo[(curr, d)] = 0
-  
-  if (curr, d) in memo:
-    return memo[(curr, d)]
-  
-  neighbors = get_neighbors_and_turns(curr, d)
-  potential_paths = []
-  for n, turns in neighbors:
-    if n not in visited and in_bounds(n, board) and board[n[0]][n[1]] != "#":
-      dy = n[0] - curr[0]
-      dx = n[1] - curr[1]
-      nv = set()
-      nv.add(curr)
-      potential_paths.append(1 + 1000 * turns + OPT(board, n, target, (dy, dx), memo, nv))
-  result = min(potential_paths) if potential_paths else math.inf
-  memo[(curr, d)] = result
-  return result
-
 def part_one(f) -> int:  # 115488 too high
   sys.setrecursionlimit(5000)
   board, s, e = parse_board(f)
@@ -86,7 +65,6 @@ def part_one(f) -> int:  # 115488 too high
   visited = set()
   visited.add(s)
   memo = {}
-  result = OPT(board, s, e, d, memo, (-1, -1))
   # for k, v in memo.items():
   #   print(k, v)
   return result
