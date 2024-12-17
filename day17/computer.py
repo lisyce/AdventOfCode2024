@@ -1,4 +1,5 @@
 import re
+from z3 import *
 
 class Computer:
   def __init__(self, fp):
@@ -15,6 +16,7 @@ class Computer:
 
     program = re.findall(r"\d+", fp.readline())
     program = [int(n) for n in program]
+    self.expanded_program = program
     
     self.program = []
     for i in range(len(program) // 2):
@@ -29,6 +31,35 @@ class Computer:
       self.opcode_map[opcode](operand)
       self.ip += 1
     print()
+
+  def solve_test(self):
+    s = Solver()
+
+    A_0 = Int('A_0')
+    B_0 = Int('B_0')
+    C_0 = Int("C_0")
+    As = [A_0]
+    s.add(B_0 == 0)
+    s.add(C_0 == 0)
+    for i in range(1, 7):
+      A_i = Int(f'A_{i}')
+      s.add(A_i == As[-1] / 8)
+      s.add(A_i % 8 == self.expanded_program[i-1])
+      As.append(A_i)
+      if i <= 5:
+        s.add(A_i != 0)
+      else:
+        s.add(A_i == 0)
+
+    # for c in s.assertions():
+    #   print(c)
+    
+    if s.check() == sat:
+      m = s.model()
+      return m[A_0]
+    else:
+      raise Exception("Unsatisfiable")
+
 
   def _combo_operand(self, operand):
     if operand <= 3:

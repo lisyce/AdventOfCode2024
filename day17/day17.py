@@ -6,8 +6,11 @@ def part_one(f) -> int:
   computer = Computer(f)
   computer.run()
 
-def part_two(f) -> int:
-  pass
+def part_two(f, is_test) -> int:
+  computer = Computer(f)
+  if is_test:
+    return computer.solve_test()
+  #return computer.solve()
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
@@ -32,7 +35,7 @@ if __name__ == "__main__":
   
   if run_pt_2:
     start = time.perf_counter()
-    pt_2_result = part_two(f)
+    pt_2_result = part_two(f, args.test)
     elapsed = (time.perf_counter() - start) * 1000 
     
     print("Part Two:", pt_2_result, "(Ran in", round(elapsed, 8), "ms)")
