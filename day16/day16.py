@@ -1,6 +1,5 @@
 import argparse, time, math, sys
-
-best_path_pt1 = math.inf
+from collections import defaultdict
 
 def parse_board(f):
   start = end = None
@@ -26,24 +25,23 @@ def get_neighbors_and_turns(curr, d):
   neighbors = []
   turns = [0, 1, 2, 1]
   for i in range(4):
-    neighbors.append([(cy + dy, cx + dx), turns[i]])
+    if i != 2:
+      neighbors.append([(cy + dy, cx + dx), turns[i]])
     temp = dy
     dy = dx
     dx = -temp
   return neighbors
 
-def pathfind(board, curr, target, d, visited, memo):
-  #global best_path_pt1
-  
-  # if (curr, d) in memo:
-  #   return memo[(curr, d)]
+def pathfind(board, curr, target, d, visited, memo, curr_score): 
+  if (curr, d) in memo:
+    if curr_score >= memo[(curr, d)]:
+      return math.inf
+  memo[(curr, d)] = curr_score
   
   if curr == target:
-    # best_path_pt1 = min(best_path_pt1, curr_score)
-    memo[(curr, d)] = 0
-    return 0
+    return curr_score
 
-  #print(len(visited))
+  print(len(visited))
   neighbors = get_neighbors_and_turns(curr, d)
   potential_paths = []
   #print(curr, d, neighbors)
@@ -52,19 +50,39 @@ def pathfind(board, curr, target, d, visited, memo):
       visited.add(n)
       dy = n[0] - curr[0]
       dx = n[1] - curr[1]
-      potential_paths.append(1 + 1000 * turns + pathfind(board, n, target, (dy, dx), visited.copy(), memo))
+      potential_paths.append(pathfind(board, n, target, (dy, dx), visited.copy(), memo, curr_score + 1 + 1000 * turns))
   result = min(potential_paths) if potential_paths else math.inf
-  memo[(curr, d)] = result
   return result
+
+# def expand_graph(board, s, e):
+#   result = defaultdict(dict)
+  
+#   # do rotations
+#   for i in range(len(board) * len(board[0])):
+#     for j in range(4):
+#       ccw = i * 4 + ((j + 1) % 4)
+#       result[i * 4 + j][ccw] = 1000
+
+#       cw = i * 4 + ((4 + j - 1) % 4)
+#       result[i * 4 + j][cw] = 1000
+
+#   for i in range(len(board)):
+#     for j in range(len(board[0])):
+#       # rotations
+        
+
+#   return result
 
 def part_one(f) -> int:  # 115488 too high
   sys.setrecursionlimit(5000)
   board, s, e = parse_board(f)
+
   d = (0, 1)  # row, col
   #print(s, e)
   visited = set()
   visited.add(s)
   memo = {}
+  result = pathfind(board, s, e, d, visited, memo, 0)
   # for k, v in memo.items():
   #   print(k, v)
   return result
