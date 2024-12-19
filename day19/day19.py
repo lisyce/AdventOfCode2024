@@ -1,7 +1,20 @@
 import argparse, time
+from tqdm import tqdm
+
+def parse_input(f):
+  towels = f.readline().strip().split(", ")
+  f.readline()
+
+  patterns = [l.strip() for l in f.readlines()]
+  return towels, patterns
+
 
 def part_one(f) -> int:
-  pass
+  towels, patterns = parse_input(f)
+  total = 0
+  for p in tqdm(patterns):
+    pass
+  return total
 
 def part_two(f) -> int:
   pass
