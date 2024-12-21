@@ -38,6 +38,7 @@ def cheat_neighbors_pt1(board, pos):
 
   return cheats
 
+# TODO don't need dijkstra's lol
 def neighbors(board, pos, cheat = None):
   y, x = pos
   result = [(y + 1, x, 1), (y-1, x, 1), (y, x-1, 1), (y, x+1, 1)]
