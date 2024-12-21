@@ -28,29 +28,28 @@ def possible_cheats_pt1(board):
 
       # up
       if i > 2 and board[i-1][j] == "#" and board[i-2][j] != "#":
-        cheats.append(((i, j), (-1, 0)))
+        cheats.append(((i, j), (i-2, j), 2))
       # down
       if i < len(board) - 3 and board[i+1][j] == "#" and board[i+2][j] != "#":
-        cheats.append(((i, j), (1, 0)))
+        cheats.append(((i, j), (i+2, j), 2))
       # left
       if j > 2 and board[i][j-1] == "#" and board[i][j-2] != "#":
-        cheats.append(((i, j), (0, -1)))
+        cheats.append(((i, j), (i, j-2), 2))
       # right
       if j < len(board[0]) - 3 and board[i][j+1] == "#" and board[i][j+2] != "#":
-        cheats.append(((i, j), (0, 1)))
+        cheats.append(((i, j), (i, j+2), 2))
   return cheats
 
 
 def neighbors(board, pos, cheat = None):
   y, x = pos
-  result = [(y + 1, x), (y-1, x), (y, x-1), (y, x+1)]
-  result = [r for r in result if in_bounds(r, board) and board[r[0]][r[1]] != "#"]
+  result = [(y + 1, x, 1), (y-1, x, 1), (y, x-1, 1), (y, x+1, 1)]
+  result = [r for r in result if in_bounds((r[0], r[1]), board) and board[r[0]][r[1]] != "#"]
 
   if cheat:
-    cheat_start, cheat_dir = cheat
+    cheat_start, cheat_end, cost = cheat
     if pos == cheat_start:
-      dy, dx = cheat_dir
-      result.append((y + dy, x + dx))
+      result.append((cheat_end[0], cheat_end[1], cost))
   return result
 
 
@@ -63,13 +62,12 @@ def dijkstras(board, start, cheat = None):
   heapq.heappush(queue, (0, start))
   while queue:
     _, curr = heapq.heappop(queue)
-
-    for loc in neighbors(board, curr, cheat):
-      alt = dist[curr] + 1
-      if alt < dist[loc]:
-        prev[loc] = curr
-        dist[loc] = alt
-        heapq.heappush(queue, (alt, loc))
+    for y, x, cost in neighbors(board, curr, cheat):
+      alt = dist[curr] + cost
+      if alt < dist[(y, x)]:
+        prev[(y, x)] = curr
+        dist[(y, x)] = alt
+        heapq.heappush(queue, (alt, (y, x)))
   return dist, prev
 
 def part_one(f) -> int:
