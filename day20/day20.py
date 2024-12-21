@@ -19,27 +19,24 @@ def parse_board(f):
 def in_bounds(pair, board) -> bool:
   return pair[0] >= 0 and pair[0] < len(board) and pair[1] >= 0 and pair[1] < len(board[0])
 
-def possible_cheats_pt1(board):
-  cheats = []  # ((curr_y, curr_x), (dy, dx))
-  for i in range(1, len(board) - 1):
-    for j in range(1, len(board[0]) - 1):
-      if board[i][j] == "#":
-        continue
+def cheat_neighbors_pt1(board, pos):
+  i, j = pos
+  cheats = []
 
-      # up
-      if i > 2 and board[i-1][j] == "#" and board[i-2][j] != "#":
-        cheats.append(((i, j), (i-2, j), 2))
-      # down
-      if i < len(board) - 3 and board[i+1][j] == "#" and board[i+2][j] != "#":
-        cheats.append(((i, j), (i+2, j), 2))
-      # left
-      if j > 2 and board[i][j-1] == "#" and board[i][j-2] != "#":
-        cheats.append(((i, j), (i, j-2), 2))
-      # right
-      if j < len(board[0]) - 3 and board[i][j+1] == "#" and board[i][j+2] != "#":
-        cheats.append(((i, j), (i, j+2), 2))
+  # up
+  if i > 2 and board[i-1][j] == "#" and board[i-2][j] != "#":
+    cheats.append((i-2, j))
+  # down
+  if i < len(board) - 3 and board[i+1][j] == "#" and board[i+2][j] != "#":
+    cheats.append((i+2, j))
+  # left
+  if j > 2 and board[i][j-1] == "#" and board[i][j-2] != "#":
+    cheats.append((i, j-2))
+  # right
+  if j < len(board[0]) - 3 and board[i][j+1] == "#" and board[i][j+2] != "#":
+    cheats.append((i, j+2))
+
   return cheats
-
 
 def neighbors(board, pos, cheat = None):
   y, x = pos
@@ -51,7 +48,6 @@ def neighbors(board, pos, cheat = None):
     if pos == cheat_start:
       result.append((cheat_end[0], cheat_end[1], cost))
   return result
-
 
 def dijkstras(board, start, cheat = None):
   queue = []
@@ -72,20 +68,36 @@ def dijkstras(board, start, cheat = None):
 
 def part_one(f) -> int:
   board, s, e = parse_board(f)
-  # get the shortest path
-  dist, _ = dijkstras(board, s)
-  shortest = dist[e]
-
+  # get the path
+  _, prev = dijkstras(board, s)
+  path, order = trace_path(e, prev)
+  
   total = 0
-  for cheat in tqdm(possible_cheats_pt1(board)):
-    dist, _ = dijkstras(board, s, cheat)
-    diff = shortest - dist[e]
-    if diff >= 100:
-      total += 1
+  for i, pos in enumerate(path):
+    can_reach = cheat_neighbors_pt1(board, pos)
+    for cr in can_reach:
+      diff = order[cr] - i - 2
+      if diff >= 100:
+        total += 1
   return total
+
+def trace_path(end, prev):
+  curr = end
+  path = []
+  inverse = {}
+  while curr:
+    path.append(curr)
+    curr = prev[curr]
+
+  path.reverse()
+  for i, pos in enumerate(path):
+    inverse[pos] = i
+  return path, inverse
+
 
 def part_two(f) -> int:
   pass
+  
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
