@@ -6,7 +6,7 @@ def parse_board(f):
   board = []
   for i, line in enumerate(f):
     row = []
-    for j, char in enumerate(line):
+    for j, char in enumerate(line.strip()):
       if char == "S":
         start = (i, j)
       elif char == "E":
