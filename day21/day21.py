@@ -57,18 +57,24 @@ def shortest_paths_to_pos(goal_pos, goal_keypad, shortest_len, curr_pos, path, v
       path.pop()
       visited.remove(n)
 
+shortest_paths_to_pos_memo = {}
+
 def shortest_paths(seq, keypad):
   result = []
   curr_pos = keypad["A"]
   while seq:
     goal_key = seq[0]
     goal_pos = keypad[goal_key]
-    paths = []
 
     dy = goal_pos[0] - curr_pos[0]
     dx = goal_pos[1] - curr_pos[1]
 
-    shortest_paths_to_pos(goal_pos, keypad, abs(dy) + abs(dx), curr_pos, [], set(), paths)
+    key = (goal_pos, curr_pos, "N" if keypad == NUM_KEYPAD else "D")
+    if key not in shortest_paths_to_pos_memo:
+      paths = []
+      shortest_paths_to_pos(goal_pos, keypad, abs(dy) + abs(dx), curr_pos, [], set(), paths)
+      shortest_paths_to_pos_memo[key] = paths
+    paths = shortest_paths_to_pos_memo[key]
 
     if not result:
       result = paths
@@ -81,13 +87,14 @@ def shortest_paths(seq, keypad):
 
     curr_pos = goal_pos
     seq = seq[1:]
-  return result
+  return list(set(result))
 
 def recursive_shortest_path(goal_seq, keypads):
   if len(keypads) == 1:
     return shortest_paths(goal_seq, keypads[0])
-  
+
   paths = recursive_shortest_path(goal_seq, keypads[1:])
+
   min_cost = math.inf
   min_cost_paths = []
   for p in paths:
@@ -114,7 +121,15 @@ def part_one(f) -> int:  # 138560 too high
   return total
 
 def part_two(f) -> int:
-  pass
+  keypads = [DIR_KEYPAD for _ in range(25)]
+  keypads.append(NUM_KEYPAD)
+
+  total = 0
+  for line in f:
+    seq = recursive_shortest_path(line.strip(), keypads)[0]
+    total += complexity(line.strip(), seq)
+    break
+  return total
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
