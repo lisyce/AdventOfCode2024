@@ -1,4 +1,5 @@
-import argparse, time, re
+import argparse, time, re, math
+
 
 NUM_KEYPAD = {
   "7": (0, 0),
@@ -23,53 +24,80 @@ DIR_KEYPAD = {
   "v": (1, 1),
   ">": (1, 2)
 }
+  
+def in_bounds(keypad, pos):
+  if pos[0] < 0 or pos[1] < 0 or pos[1] > 2:
+    return False
+  return pos[0] < 2 if keypad == DIR_KEYPAD else pos[0] < 4
 
-def shortest_path_to_goal(goal_pos, goal_keypad, curr_pos):
+def keypad_neighbors(goal_pos, curr_pos):
   result = []
   dy = goal_pos[0] - curr_pos[0]
   dx = goal_pos[1] - curr_pos[1]
 
-  def do_vertical(dy, result):
-    char = "v" if dy > 0 else "^"
-    for _ in range(abs(dy)):
-      result.append(char)
-  def do_horizontal(dx, result):
-    char = ">" if dx > 0 else "<"
-    for _ in range(abs(dx)):
-      result.append(char)
-
-  # will we hit the empty square?
-  empty = goal_keypad["."]
-  if curr_pos[0] == empty[0]:  # same row, do the vertical first
-    do_vertical(dy, result)
-    do_horizontal(dx, result)
-  else:
-    do_horizontal(dx, result)
-    do_vertical(dy, result)
-
+  if dy != 0:
+    result.append(((curr_pos[0] + dy / abs(dy), curr_pos[1]), "^" if dy < 0 else "v"))
+  if dx != 0:
+    result.append(((curr_pos[0], curr_pos[1] + dx / abs(dx)), "<" if dx < 0 else ">"))
   return result
+
+
+def shortest_paths_to_pos(goal_pos, goal_keypad, shortest_len, curr_pos, path, visited, out):
+  if curr_pos == goal_pos:
+    out.append("".join(path) + "A")
+    return
+  if len(path) >= shortest_len:
+    return
   
+  for n, path_addition in keypad_neighbors(goal_pos, curr_pos):
+    if n not in visited and n != goal_keypad["."] and in_bounds(goal_keypad, n):
+      visited.add(n)
+      path.append(path_addition)
+      shortest_paths_to_pos(goal_pos, goal_keypad, shortest_len, n, path, visited, out)
+      path.pop()
+      visited.remove(n)
 
-def shortest_path(seq, seq_keypad):
+def shortest_paths(seq, keypad):
   result = []
-  seq_pos = seq_keypad["A"]
-
+  curr_pos = keypad["A"]
   while seq:
     goal_key = seq[0]
-    goal_pos = seq_keypad[goal_key]
-    p = shortest_path_to_goal(goal_pos, seq_keypad, seq_pos)
-    result.extend(p)
-    result.append("A")
-    seq_pos = goal_pos
+    goal_pos = keypad[goal_key]
+    paths = []
+
+    dy = goal_pos[0] - curr_pos[0]
+    dx = goal_pos[1] - curr_pos[1]
+
+    shortest_paths_to_pos(goal_pos, keypad, abs(dy) + abs(dx), curr_pos, [], set(), paths)
+
+    if not result:
+      result = paths
+    else:
+      temp = []
+      for r in result:
+        for p in paths:
+          temp.append(r + p)
+      result = temp
+
+    curr_pos = goal_pos
     seq = seq[1:]
-  print("".join(result))
-  return "".join(result)
+  return result
 
 def recursive_shortest_path(goal_seq, keypads):
   if len(keypads) == 1:
-    return shortest_path(goal_seq, keypads[0])
+    return shortest_paths(goal_seq, keypads[0])
   
-  return shortest_path(recursive_shortest_path(goal_seq, keypads[1:]), keypads[0])
+  paths = recursive_shortest_path(goal_seq, keypads[1:])
+  min_cost = math.inf
+  min_cost_paths = []
+  for p in paths:
+    for sp in shortest_paths(p, keypads[0]):
+      if len(sp) == min_cost:
+        min_cost_paths.append(sp)
+      elif len(sp) < min_cost:
+        min_cost_paths = [sp]
+        min_cost = len(sp)
+  return min_cost_paths
 
 def complexity(code, seq):
   numeric = re.findall(r"\d+", code)[0]
@@ -78,11 +106,11 @@ def complexity(code, seq):
 
 def part_one(f) -> int:  # 138560 too high
   keypads = [DIR_KEYPAD, DIR_KEYPAD, NUM_KEYPAD]
+
   total = 0
   for line in f:
-    seq = recursive_shortest_path(line.strip(), keypads)
+    seq = recursive_shortest_path(line.strip(), keypads)[0]
     total += complexity(line.strip(), seq)
-    break
   return total
 
 def part_two(f) -> int:
