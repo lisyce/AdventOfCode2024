@@ -1,4 +1,4 @@
-import argparse, time
+import argparse, time, re
 
 NUM_KEYPAD = {
   "7": (0, 0),
@@ -62,6 +62,7 @@ def shortest_path(seq, seq_keypad):
     result.append("A")
     seq_pos = goal_pos
     seq = seq[1:]
+  print("".join(result))
   return "".join(result)
 
 def recursive_shortest_path(goal_seq, keypads):
@@ -70,9 +71,19 @@ def recursive_shortest_path(goal_seq, keypads):
   
   return shortest_path(recursive_shortest_path(goal_seq, keypads[1:]), keypads[0])
 
-def part_one(f) -> int:
-  print(recursive_shortest_path("029A", [DIR_KEYPAD, NUM_KEYPAD]))
+def complexity(code, seq):
+  numeric = re.findall(r"\d+", code)[0]
+  numeric = int(numeric)
+  return numeric * len(seq)
 
+def part_one(f) -> int:  # 138560 too high
+  keypads = [DIR_KEYPAD, DIR_KEYPAD, NUM_KEYPAD]
+  total = 0
+  for line in f:
+    seq = recursive_shortest_path(line.strip(), keypads)
+    total += complexity(line.strip(), seq)
+    break
+  return total
 
 def part_two(f) -> int:
   pass
