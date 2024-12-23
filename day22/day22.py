@@ -23,9 +23,11 @@ def deque_to_tuple(d):
   temp = [di for di in d]
   return (temp[0], temp[1], temp[2], temp[3])
 
+changes = None
+
 def price_changes(n):
   q = deque()
-  changes = defaultdict(int)
+  seen_keys = set()
   for _ in range(2000):
     n_ = next_num(n)
     price = n_ % 10
@@ -34,34 +36,22 @@ def price_changes(n):
     
     if len(q) == 4:
       key = deque_to_tuple(q)
-      if key not in changes:
-        changes[deque_to_tuple(q)] = price
+      if key not in seen_keys:
+        changes[key] += price
+        seen_keys.add(key)
       q.popleft()
     n = n_
 
-  return changes
-
-def most_bananas(all_changes):
-  most = 0
-  checked = set()
-  for buyer in tqdm(all_changes):
-    for seq in buyer:
-      if seq in checked:
-        continue
-      total = sum([ac[seq] for ac in all_changes])
-      most = max(most, total)
-      checked.add(seq)
-  return most
-    
 
 def part_two(f) -> int:
-  all_changes = []
-  for line in f:
-    n = int(line.strip())
-    all_changes.append(price_changes(n))
-  
-  return most_bananas(all_changes)
+  global changes
+  changes = defaultdict(int)
 
+  for line in tqdm(f.readlines()):
+    n = int(line.strip())
+    price_changes(n)
+  return max([v for _, v in changes.items()])
+  
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
