@@ -30,7 +30,7 @@ def part_one(f) -> int:
   
 def bron_kerbosch(R, P, X, graph, out):
   if not P and not X:
-    if len(R) == max(len(graph[k]) for k in graph):
+    if len(R) == max(len(graph[k]) for k in graph):  # we exploit the property that there is one maximum clique of this size
       out.update(R)
     return
   u = (P | X).pop()
