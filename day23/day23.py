@@ -24,13 +24,13 @@ def part_one(f) -> int:
   sets = sets_of_3(graph)
   total = 0
   for s in sets:
-    if any([si.startswith("t") for si in s]):
+    if any(si.startswith("t") for si in s):
       total += 1
   return total
   
 def bron_kerbosch(R, P, X, graph, out):
   if not P and not X:
-    if len(R) == max([len(graph[k]) for k in graph]):
+    if len(R) == max(len(graph[k]) for k in graph):
       out.update(R)
     return
   u = (P | X).pop()
