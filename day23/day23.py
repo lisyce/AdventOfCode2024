@@ -28,9 +28,23 @@ def part_one(f) -> int:
       total += 1
   return total
   
+def bron_kerbosch(R, P, X, graph, out):
+  if not P and not X:
+    if len(R) == max([len(graph[k]) for k in graph]):
+      out.update(R)
+    return
+  u = (P | X).pop()
+  for v in P - graph[u]:
+    bron_kerbosch(R | {v}, P & graph[v], X & graph[v], graph, out)
+    P.remove(v)
+    X.add(v)
+
 
 def part_two(f) -> int:
-  pass
+  graph = build_graph(f)
+  clique = set()
+  bron_kerbosch(set(), set([v for v in graph]), set(), graph, clique)
+  return ",".join(sorted(list(clique)))
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
