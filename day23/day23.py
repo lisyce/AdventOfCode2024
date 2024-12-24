@@ -44,7 +44,7 @@ def part_two(f) -> int:
   graph = build_graph(f)
   clique = set()
   bron_kerbosch(set(), set([v for v in graph]), set(), graph, clique)
-  return ",".join(sorted(list(clique)))
+  return ",".join(sorted(clique))
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser()
