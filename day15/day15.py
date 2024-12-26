@@ -42,7 +42,7 @@ def score(board):
   total = 0
   for i in range(len(board)):
     for j in range(len(board[0])):
-      if board[i][j] == "O":
+      if board[i][j] in "[O":
         total += 100 * i + j
   return total
 
@@ -76,45 +76,83 @@ def box_bounds(board, ix, iy):
   this_tile = board[iy][ix]
 
   if this_tile == "]":
-    return [ix-1, ix, iy]
+    return [ix - 1, ix, iy]
   else:
     return [ix, ix + 1, iy]
 
 def move_box_y(board, box_pos, dy):
-  bounds = box_bounds(board, box_pos[0], box_pos[1])
-  stack = [bounds]
+  # find all of the boxes in the way
+  boxes_to_move = []
+  stack = [box_bounds(board, box_pos[0], box_pos[1])]
+  while stack:
+    left, right, y = stack.pop()
+    boxes_to_move.append((left, right, y))
 
-  # is there space for all of the boxes to move?
-  y = box_pos[1] + dy
-  # while y >= 0 and y < len(board):
-  #   # check the 2 positions
-  #   left = board[y][bounds[0]]
-  #   right = board[y][bounds[1]]
-  #   if left == "." and right == ".":
-  #     break
-  #   if left != ".":
-  #     stack.append(box_bounds(board, bounds[0], y))
-  #   if right == "[":
-  #     stack.append(box_bounds(board, bounds[1], y))
+    # can we move this box? if not, we can't move anything
+    if board[y + dy][left] == "#" or board[y + dy][right] == "#":
+      return
+    
+    # find adjacent boxes to move
+    if board[y + dy][left] in "[]":
+      stack.append(box_bounds(board, left, y+dy))
+    if board[y + dy][right] in "[]":
+      stack.append(box_bounds(board, right, y+dy))
 
-  #   y += dy
-  print(stack)
+  # we can move all the boxes, so let's do it!
+  while boxes_to_move:
+    left, right, y = boxes_to_move.pop()
+    board[y][left] = "."
+    board[y][right] = "."
+    board[y + dy][left] = "["
+    board[y + dy][right] = "]"
 
-def part_two(f) -> int:
+def move_box_x(board, box_pos, dx):
+  boxes_to_move = []
+  stack = [box_pos]
+  while stack:
+    curr_box = stack.pop()
+    boxes_to_move.append(curr_box)
+    left, right, y = box_bounds(board, curr_box[0], curr_box[1])
+    
+    # can we move this box? if not, we can't move anything
+    next_tile_x = left - 1 if dx == -1 else right + 1
+    if board[y][next_tile_x] == "#":
+      return
+    
+    # find adjacent boxes to move
+    elif board[y][next_tile_x] in "[]":
+      stack.append((next_tile_x, y))
+
+  # we can move all the boxes, so let's do it!
+  while boxes_to_move:
+    curr_box = boxes_to_move.pop()
+    left, right, y = box_bounds(board, curr_box[0], curr_box[1])
+    
+    board[y][left] = "."
+    board[y][right] = "."
+    board[y][left + dx] = "["
+    board[y][right + dx] = "]"
+
+def part_two(f) -> int:  #1544460 too low
   board, moves = parse_input(f)
-  #board = double_board(board)
+  board = double_board(board)
 
   fish = where_fish(board)
-  for row in board:
-    print("".join(row))
+
   for move_line in moves:
     for move in move_line:
-      print(move)
       dx, dy = direction(move)
-      move_box_y(board, (6, 4), -1)
-      #fish = move_vertical_pt2(board, fish[1], fish[0], dy)
-      for row in board:
-        print("".join(row))
+      if board[fish[0] + dy][fish[1] + dx] in "[]":
+        if dy != 0:
+          move_box_y(board, (fish[1], fish[0]+dy), dy)
+        elif dx != 0:
+          move_box_x(board, (fish[1]+dx, fish[0]), dx)
+      if board[fish[0] + dy][fish[1] + dx] == ".":
+        board[fish[0]][fish[1]] = "."
+        fish = (fish[0] + dy, fish[1] + dx)
+        board[fish[0]][fish[1]] = "@"
+  for row in board:
+    print("".join(row))
   return score(board)
 
 if __name__ == "__main__":  
