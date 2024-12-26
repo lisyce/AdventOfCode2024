@@ -99,8 +99,12 @@ def move_box_y(board, box_pos, dy):
       stack.append(box_bounds(board, right, y+dy))
 
   # we can move all the boxes, so let's do it!
+  moved = set()
   while boxes_to_move:
     left, right, y = boxes_to_move.pop()
+    if (left, right, y) in moved:
+      continue
+    moved.add((left, right, y))
     board[y][left] = "."
     board[y][right] = "."
     board[y + dy][left] = "["
@@ -108,11 +112,10 @@ def move_box_y(board, box_pos, dy):
 
 def move_box_x(board, box_pos, dx):
   boxes_to_move = []
-  stack = [box_pos]
+  stack = [box_bounds(board, box_pos[0], box_pos[1])]
   while stack:
-    curr_box = stack.pop()
-    boxes_to_move.append(curr_box)
-    left, right, y = box_bounds(board, curr_box[0], curr_box[1])
+    left, right, y = stack.pop()
+    boxes_to_move.append((left, right, y))
     
     # can we move this box? if not, we can't move anything
     next_tile_x = left - 1 if dx == -1 else right + 1
@@ -121,24 +124,24 @@ def move_box_x(board, box_pos, dx):
     
     # find adjacent boxes to move
     elif board[y][next_tile_x] in "[]":
-      stack.append((next_tile_x, y))
+      stack.append(box_bounds(board, next_tile_x, y))
 
   # we can move all the boxes, so let's do it!
+  moved = set()
   while boxes_to_move:
-    curr_box = boxes_to_move.pop()
-    left, right, y = box_bounds(board, curr_box[0], curr_box[1])
-    
+    left, right, y = boxes_to_move.pop()
+    if (left, right, y) in moved:
+      continue
     board[y][left] = "."
     board[y][right] = "."
     board[y][left + dx] = "["
     board[y][right + dx] = "]"
 
-def part_two(f) -> int:  #1544460 too low
+def part_two(f) -> int:
   board, moves = parse_input(f)
   board = double_board(board)
 
   fish = where_fish(board)
-
   for move_line in moves:
     for move in move_line:
       dx, dy = direction(move)
@@ -151,8 +154,7 @@ def part_two(f) -> int:  #1544460 too low
         board[fish[0]][fish[1]] = "."
         fish = (fish[0] + dy, fish[1] + dx)
         board[fish[0]][fish[1]] = "@"
-  for row in board:
-    print("".join(row))
+
   return score(board)
 
 if __name__ == "__main__":  
